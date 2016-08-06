@@ -60,7 +60,7 @@
                 }
             }
             function onclose() {
-                writeline("Connection Closed. Reconnect after 3sec.");
+                writeline("Connection Closed.");// Reconnect after 3sec.");
                 ws = null;
                 //setTimeout(open,3000);
             }
@@ -95,6 +95,8 @@
                         current_image.src = 'data:image/jpg;base64,' + arg;
                         current_image.onload = function () {
                             drawImage("received_img");
+                            dateString = new Date().toString()
+                            writeline("MESSAGE:USB Image Updated " + dateString)
                         }
                     } else if (command == "RET_IMAGE_LIST") {
                         var image_list = arg.split('`');
@@ -130,7 +132,7 @@
             $('#get_image_list').click(function () {
                 send('GET_IMAGE_LIST:');
             })
-            $('#get_image').click(function () {
+            $('#select_image').change(function () {
                 var image_name = $('#select_image').val();
                 if (image_name != "(none)") {
                     send('GET_IMAGE:' + image_name);
@@ -156,7 +158,7 @@
     <button id="get_temp">GET_TEMP</button>&nbsp;<span id="label_temp"></span>
     &nbsp;<button id="led_on">LED ON</button>&nbsp;<span id="label_led">LED OFF</span>&nbsp;<button id="led_off">LED OFF</button><br />
     <button id="get_image_list">GET_IMAGE_LIST</button>&nbsp:
-    GET_IMAGE:<select id="select_image"><option value="(none)">(none)</option></select><button id="get_image">GET</button>
+    GET_IMAGE:<select id="select_image"><option value="(none)">(none)</option></select>
     &nbsp;<button id="get_usb_image">GET USB IMAGE</button><br />
     <canvas id="received_img" width="640" height="480"></canvas>
     <br />

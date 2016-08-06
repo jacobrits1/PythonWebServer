@@ -32,7 +32,6 @@
   <ItemGroup>
     <Content Include="index.html" />
     <Content Include="jquery-1.11.3.min.js" />
-    <Content Include="shutter2.sh" />
     <Content Include="プロジェクトの状況.txt" />
   </ItemGroup>
   <PropertyGroup>

@@ -9,6 +9,7 @@ import sys
 import platform
 import ptvsd
 import exceptions
+from exceptions import IOError, Exception, KeyboardInterrupt
 
 platform_system=platform.system()
 
@@ -49,7 +50,12 @@ def handle_command(ws):
             if(command=="GET_IMAGE"):
                 try:
                     fp = StringIO()
-                    img = Image.open("./images/"+arg)
+                    try:
+                        img = Image.open("./images/"+arg)
+                    except IOError as e:
+                        ws.send("ERROR :");
+                        ws.send("< "+message+"");
+                        ws.send("> "+e.strerror);                    
                     img.save(fp,'JPEG')
                     ws.send("RET_IMAGE:"+fp.getvalue().encode("base64"))
                 except Exception as e:
