@@ -21,6 +21,7 @@ if len(sys.argv)>1:
 # Debug end
 from Good_w1_get_DS18B20_Temperature import *
 from led_cont import *
+from usb_camera_capture import *
 
 chat_clients = set()
 
@@ -57,6 +58,7 @@ def handle_command(ws):
                     ws.send("> "+e.strerror);
             elif(command=="GET_IMAGE_LIST"):
                 filelist=os.listdir('./images/')
+                filelist.sort()
                 filelist_str="`".join(filelist)
                 ws.send("RET_IMAGE_LIST:"+filelist_str)
             elif(command=="GET_SERVER_NAME"):
@@ -80,6 +82,11 @@ def handle_command(ws):
                     else:
                         set_led(False)
                         ws.send("RET_LED:False")
+            elif(command=="GET_USB_IMAGE"):
+                img=usb_camera_capture()
+                fp = StringIO()
+                img.save(fp,'JPEG')
+                ws.send("RET_USB_IMAGE:"+fp.getvalue().encode("base64"))
             else:
                 ws.send(command+": is not supported")
         else:

@@ -90,6 +90,12 @@
                         current_image.onload = function () {
                             drawImage("received_img");
                         }
+                    } else if (command == "RET_USB_IMAGE") {
+                        current_image = new Image();
+                        current_image.src = 'data:image/jpg;base64,' + arg;
+                        current_image.onload = function () {
+                            drawImage("received_img");
+                        }
                     } else if (command == "RET_IMAGE_LIST") {
                         var image_list = arg.split('`');
                         $('#select_image').empty();
@@ -139,6 +145,9 @@
             $('#led_off').click(function () {
                 send('SET_LED:False');
             })
+            $('#get_usb_image').click(function () {
+                send('GET_USB_IMAGE:');
+            })
         });
     </script>
 </head>
@@ -147,7 +156,8 @@
     <button id="get_temp">GET_TEMP</button>&nbsp;<span id="label_temp"></span>
     &nbsp;<button id="led_on">LED ON</button>&nbsp;<span id="label_led">LED OFF</span>&nbsp;<button id="led_off">LED OFF</button><br />
     <button id="get_image_list">GET_IMAGE_LIST</button>&nbsp:
-    GET_IMAGE:<select id="select_image"><option value="(none)">(none)</option></select><button id="get_image">send</button><br />
+    GET_IMAGE:<select id="select_image"><option value="(none)">(none)</option></select><button id="get_image">GET</button>
+    &nbsp;<button id="get_usb_image">GET USB IMAGE</button><br />
     <canvas id="received_img" width="640" height="480"></canvas>
     <br />
     Enter Command&nbsp;<input type="text" id="send_command" value="GET_IMAGE:" class="command_input">

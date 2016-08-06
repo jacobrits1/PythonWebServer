@@ -25,10 +25,14 @@
     <Compile Include="led_cont.py" />
     <Compile Include="Good_w1_get_DS18B20_Temperature.py" />
     <Compile Include="PythonWebServer.py" />
+    <Compile Include="usb_camera_capture.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html" />
     <Content Include="jquery-1.11.3.min.js" />
+    <Content Include="shutter2.sh" />
     <Content Include="プロジェクトの状況.txt" />
   </ItemGroup>
   <PropertyGroup>
