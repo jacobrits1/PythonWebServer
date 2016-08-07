@@ -11,6 +11,9 @@ import ptvsd
 import exceptions
 from exceptions import IOError, Exception, KeyboardInterrupt
 
+port_number=15328
+pass_word="lemoncookie"
+
 platform_system=platform.system()
 
 if len(sys.argv)>1:
@@ -30,14 +33,6 @@ chat_clients = set()
 def get_temp():
     return 25
 
-def handle_chat(ws):
-    while True:
-        message = ws.receive()
-        if message is None:
-            break
-        for client in chat_clients:
-            client.send("Echo:"+message)
-    chat_clients.remove(ws)
 def handle_command(ws):
     while True:
         message = ws.receive()
@@ -93,6 +88,9 @@ def handle_command(ws):
                 fp = StringIO()
                 img.save(fp,'JPEG')
                 ws.send("RET_USB_IMAGE:"+fp.getvalue().encode("base64"))
+            elif(command=="SET_AUTHENTICATION"):
+                if arg==pass_word:
+                    ws.send("RET_AUTHENTICATION:mainpage34975.html")
             else:
                 ws.send(command+": is not supported")
         else:
@@ -103,9 +101,7 @@ def app(environ, start_response):
     path = environ["PATH_INFO"]
     if path == "/":
         start_response("200 OK", [("Content-Type", "text/html")])
-        return open("index.html").readlines()
-    elif path == "/chat":
-        handle_chat(environ["wsgi.websocket"])
+        return open("scripts/index.html").readlines()
     elif path == "/command":
         try:
             handle_command(environ["wsgi.websocket"])
@@ -113,8 +109,11 @@ def app(environ, start_response):
             pass
     else:
         filename = path[1:] #remove /
+        if filename.find("/") > -1 : #danger
+            start_response("404 Not Found", [])
+            return []
         try:
-            result = open(filename).readlines()
+            result = open("scripts/"+filename).readlines()
             if(len(result)>0):
                 start_response("200 OK",[("Content-Type", "text/html")])
                 return result
@@ -128,7 +127,7 @@ def app(environ, start_response):
 if __name__ == "__main__":
     init_led()
     try :
-        server = pywsgi.WSGIServer(("0.0.0.0",5000), app, handler_class=WebSocketHandler)
+        server = pywsgi.WSGIServer(("0.0.0.0",port_number), app, handler_class=WebSocketHandler)
         server.serve_forever()
     except KeyboardInterrupt :
         pass

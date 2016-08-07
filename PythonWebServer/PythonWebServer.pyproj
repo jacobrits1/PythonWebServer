@@ -30,9 +30,15 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="index.html" />
-    <Content Include="jquery-1.11.3.min.js" />
+    <Content Include="scripts\index.html" />
+    <Content Include="scripts\jquery-1.11.3.min.js" />
+    <Content Include="scripts\jquery.min.map" />
+    <Content Include="scripts\mainpage34975.html" />
+    <Content Include="scripts\send_password.js" />
     <Content Include="プロジェクトの状況.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="scripts\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

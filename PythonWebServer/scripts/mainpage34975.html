@@ -6,18 +6,20 @@
     <title>Python Web Server</title>
     <script src="/jquery-1.11.3.min.js"></script>
     <style type="text/css">
-        pre.infobox{
+        pre.infobox {
             height: 10.5em;
             overflow: auto;
             border: blue 1px dashed;
             background-color: #f8f8ff;
             padding: 5pt;
         }
-        .command_input{
+
+        .command_input {
             width: 300px;
         }
     </style>
     <script>
+        var port_number = 15328;
         var ws;
         var sendBuffer = null;
         var current_image;
@@ -42,7 +44,7 @@
             }
             open();
             function open() {
-                ws = new WebSocket("ws://" + location.hostname + ":5000/command");
+                ws = new WebSocket("ws://" + location.hostname + ":"+port_number+"/command");
                 //ws.binaryType = 'arrayBuffer';
                 ws.onopen = onopen;
                 ws.onmessage = onmessage;
@@ -112,7 +114,7 @@
                         } else {
                             $('#label_led').text("LED OFF");
                         }
-                        
+
                     } else if (command == "RET_MESSAGE") {
                         writeline(arg);
                     } else {
@@ -154,7 +156,7 @@
     </script>
 </head>
 <body>
-    <h3>This is PythonWebServer/index.html</h3>
+    <h3>This is PythonWebServer/mainpage.html</h3>
     <button id="get_temp">GET_TEMP</button>&nbsp;<span id="label_temp"></span>
     &nbsp;<button id="led_on">LED ON</button>&nbsp;<span id="label_led">LED OFF</span>&nbsp;<button id="led_off">LED OFF</button><br />
     <button id="get_image_list">GET_IMAGE_LIST</button>&nbsp:
@@ -162,8 +164,6 @@
     &nbsp;<button id="get_usb_image">GET USB IMAGE</button><br />
     <canvas id="received_img" width="640" height="480"></canvas>
     <br />
-    Enter Command&nbsp;<input type="text" id="send_command" value="GET_IMAGE:" class="command_input">
-    <button id="send">send</button><br />
     <pre id="box_holder" class="infobox"></pre>
 </body>
 </html>
