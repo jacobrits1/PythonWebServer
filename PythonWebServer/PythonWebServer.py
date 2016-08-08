@@ -4,18 +4,17 @@ import gevent
 from cStringIO import StringIO
 from PIL import Image
 import os
-# Debug with Visual Studio on Windows
-import sys
-import platform
-import ptvsd
 import exceptions
 from exceptions import IOError, Exception, KeyboardInterrupt
 
 port_number=15328
 pass_word="lemoncookie"
 
+# Debug with Visual Studio on Windows
+import sys
+import platform
+import ptvsd
 platform_system=platform.system()
-
 if len(sys.argv)>1:
     ptvsd.enable_attach('test') # tcp://test@raspberrypi/
     if platform_system != 'Windows':
@@ -23,14 +22,12 @@ if len(sys.argv)>1:
         ptvsd.wait_for_attach()
         print "Process Attached From Visual Studio"
 # Debug end
-from Good_w1_get_DS18B20_Temperature import *
-from led_cont import *
-from usb_camera_capture import *
 
-chat_clients = set()
+from Good_w1_get_DS18B20_Temperature import TempratureSensor
+from led_cont import LED
+from usb_camera_capture import USBCamera
 
-
-def get_temp():
+def get_temp(): #dummy for windows debug
     return 25
 
 def handle_command(env):
@@ -77,7 +74,7 @@ def handle_command(env):
                     if(platform_system ==  'Windows'):
                         ws.send("RET_TEMP:dummy 25.000")
                     else:
-                        temps = read_temp()
+                        temps = tempsens.read_temp()
                         ws.send("RET_TEMP:"+str(temps[0]))
                 elif(command=="SET_LED"):
                     if(platform_system ==  'Windows'):
@@ -87,13 +84,13 @@ def handle_command(env):
                             print "LED=OFF\n"
                     else:
                         if (arg.lower()=="true") or (arg=="1") :
-                            set_led(True)
+                            led.set(True)
                             ws.send("RET_LED:True")
                         else:
-                            set_led(False)
+                            led.set(False)
                             ws.send("RET_LED:False")
                 elif(command=="GET_USB_IMAGE"):
-                    img=usb_camera_capture()
+                    img=usbcamera.capture()
                     fp = StringIO()
                     img.save(fp,'JPEG')
                     ws.send("RET_USB_IMAGE:"+fp.getvalue().encode("base64"))
@@ -132,7 +129,9 @@ def app(environ, start_response):
             return []
 
 if __name__ == "__main__":
-    init_led()
+    led=LED()
+    usbcamera=USBCamera()
+    tempsens=TempratureSensor()
     try :
         server = pywsgi.WSGIServer(("0.0.0.0",port_number), app, handler_class=WebSocketHandler)
         server.serve_forever()
