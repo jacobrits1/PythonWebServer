@@ -5,16 +5,175 @@
     <meta charset="utf-8" />
     <title>Python Web Server</title>
     <script src="/jquery-1.11.3.min.js"></script>
-    <script src="/send_password.js"></script>
+    <style type="text/css">
+        pre.infobox {
+            height: 10.5em;
+            overflow: auto;
+            border: blue 1px dashed;
+            background-color: #f8f8ff;
+            padding: 5pt;
+        }
+
+        .command_input {
+            width: 300px;
+        }
+    </style>
     <script>
+        var port_number = 15328;
+        var ws;
+        var sendBuffer = null;
+        var current_image;
         $(function () {
+            function drawImage(canvas_id) {
+                var canvas = $('#' + canvas_id)[0];
+                if (!canvas || !canvas.getContext) { return false; }
+
+                var imageAspect = current_image.height / current_image.width;
+                var img_width = canvas.width;
+                var img_height = canvas.height;
+                var pbAspect = img_height / img_width;
+                if (imageAspect > pbAspect) {
+                    img_width = parseInt(img_height / imageAspect);
+                } else {
+                    img_height = parseInt(img_width * imageAspect);
+                }
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(current_image, 0, 0, img_width, img_height);
+            }
+            open();
+            function open() {
+                ws = new WebSocket("ws://" + location.hostname + ":"+port_number+"/command");
+                //ws.binaryType = 'arrayBuffer';
+                ws.onopen = onopen;
+                ws.onmessage = onmessage;
+                ws.onclose = onclose;
+                ws.onerror = onerror;
+            }
+            function onopen() {
+                writeline("Connected to Host");
+                ws.send("GET_SERVER_NAME:");
+                if (sendBuffer != null) {
+                    ws.send(sendBuffer);
+                    sendBuffer = null;
+                } else {
+                    //do nothing
+                }
+            }
+            function onclose() {
+                writeline("Connection Closed.");// Reconnect after 3sec.");
+                ws = null;
+                //setTimeout(open,3000);
+            }
+            function send(msg) {
+                if (ws == null) {
+                    sendBuffer = msg;
+                    open();
+                } else {
+                    ws.send(msg);
+                }
+            }
+            function onerror(msg) {
+                writeline("HOST ERROR : " + msg.toString());
+            }
+            function onmessage(msg) {
+                var dataStr = msg.data;
+                var index = dataStr.indexOf(':');
+                if ((index > 0) && (index < 30)) {
+                    var command = dataStr.substr(0, index);
+                    var arg = "";
+                    if (dataStr.length > index + 1) {
+                        var arg = dataStr.substr(index + 1);
+                    }
+                    if (command == "RET_AUTHENTICATION") {
+                        if (arg == "True") {
+                            $("#is_authed").text("OK");
+                        }
+                    }
+                    if (command == "RET_IMAGE") {
+                        current_image = new Image();
+                        current_image.src = 'data:image/jpg;base64,' + arg;
+                        current_image.onload = function () {
+                            drawImage("received_img");
+                        }
+                    } else if (command == "RET_USB_IMAGE") {
+                        current_image = new Image();
+                        current_image.src = 'data:image/jpg;base64,' + arg;
+                        current_image.onload = function () {
+                            drawImage("received_img");
+                            dateString = new Date().toString()
+                            writeline("MESSAGE:USB Image Updated " + dateString)
+                        }
+                    } else if (command == "RET_IMAGE_LIST") {
+                        var image_list = arg.split('`');
+                        $('#select_image').empty();
+                        for (var ii = 0; ii < image_list.length; ii++) {
+                            $('#select_image').append("<option value='"+image_list[ii]+"'>"+image_list[ii]+"</option>");
+                        }
+                    } else if (command == "RET_TEMP") {
+                        $('#label_temp').text(arg + '℃'); label_led
+                    } else if (command == "RET_LED") {
+                        if (arg == "True") {
+                            $('#label_led').text("LED  ON");
+                        } else {
+                            $('#label_led').text("LED OFF");
+                        }
+
+                    } else if (command == "RET_MESSAGE") {
+                        writeline(arg);
+                    } else {
+                        writeline(dataStr);
+                    }
+                } else {
+                    writeline(dataStr);
+                }
+            }
+            function writeline(data) {
+                $("#box_holder").text($("#box_holder").text() + "\n" + data);
+                $("#box_holder").animate({scrollTop: $('#box_holder')[0].scrollHeight},'fast');
+            }
+            $('#send').click(function () {
+                send($('#send_command').val());
+            })
+            $('#get_image_list').click(function () {
+                send('GET_IMAGE_LIST:');
+            })
+            $('#select_image').change(function () {
+                var image_name = $('#select_image').val();
+                if (image_name != "(none)") {
+                    send('GET_IMAGE:' + image_name);
+                }
+            })
+            $('#get_temp').click(function () {
+                send('GET_TEMP:');
+            })
+            $('#led_on').click(function () {
+                send('SET_LED:True');
+            })
+            $('#led_off').click(function () {
+                send('SET_LED:False');
+            })
+            $('#get_usb_image').click(function () {
+                send('GET_USB_IMAGE:');
+            })
             $('#button_pw').click(function () {
-                send('SET_AUTHENTICATION:'+$('#password').val());
+                send('SET_AUTHENTICATION:' + $('#password').val());
+                $('#password').val("");
             })
         });
     </script>
 </head>
 <body>
-    Enter Password:<input type="text" id="password"><button id="button_pw" >SET</button>
+    <h3>This is PythonWebServer/mainpage.html</h3>
+    Enter Password:<input type="text" id="password"><button id="button_pw">SET</button>&nbsp;AUTHENTICATION&nbsp;<span id="is_authed">NG</span><br />
+    <button id="get_temp">GET_TEMP</button>&nbsp;<span id="label_temp"></span>
+    &nbsp;<button id="led_on">LED ON</button>&nbsp;<span id="label_led">LED OFF</span>&nbsp;<button id="led_off">LED OFF</button><br />
+    <button id="get_image_list">GET_IMAGE_LIST</button>&nbsp:
+    GET_IMAGE:<select id="select_image"><option value="(none)">(none)</option></select>
+    &nbsp;<button id="get_usb_image">GET USB IMAGE</button><br />
+    <canvas id="received_img" width="640" height="480"></canvas>
+    <br />
+    <pre id="box_holder" class="infobox"></pre>
 </body>
 </html>

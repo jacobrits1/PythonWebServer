@@ -17,7 +17,7 @@ pass_word="lemoncookie"
 platform_system=platform.system()
 
 if len(sys.argv)>1:
-    ptvsd.enable_attach('test') #tcp://test@raspberrypi/
+    ptvsd.enable_attach('test') # tcp://test@raspberrypi/
     if platform_system != 'Windows':
         print "Waiting for Attach"
         ptvsd.wait_for_attach()
@@ -33,7 +33,9 @@ chat_clients = set()
 def get_temp():
     return 25
 
-def handle_command(ws):
+def handle_command(env):
+    isAuthed=False
+    ws=env["wsgi.websocket"]
     while True:
         message = ws.receive()
         if message is None:
@@ -42,57 +44,62 @@ def handle_command(ws):
         if((index >=1)and(index<30)):
             command= message[0:index]
             arg = message[index+1:]
-            if(command=="GET_IMAGE"):
-                try:
-                    fp = StringIO()
+            if(command=="SET_AUTHENTICATION"):
+                if arg==pass_word:
+                    isAuthed=True
+                    ws.send("RET_AUTHENTICATION:True")
+                else:
+                    ws.send("RET_AUTHENTICATION:False")
+            if isAuthed==True:
+                if command=="GET_IMAGE":
                     try:
-                        img = Image.open("./images/"+arg)
-                    except IOError as e:
+                        fp = StringIO()
+                        try:
+                            img = Image.open("./images/"+arg)
+                        except IOError as e:
+                            ws.send("ERROR :");
+                            ws.send("< "+message+"");
+                            ws.send("> "+e.strerror);                    
+                        img.save(fp,'JPEG')
+                        ws.send("RET_IMAGE:"+fp.getvalue().encode("base64"))
+                    except Exception as e:
                         ws.send("ERROR :");
                         ws.send("< "+message+"");
-                        ws.send("> "+e.strerror);                    
+                        ws.send("> "+e.strerror);
+                elif(command=="GET_IMAGE_LIST"):
+                    filelist=os.listdir('./images/')
+                    filelist.sort()
+                    filelist_str="`".join(filelist)
+                    ws.send("RET_IMAGE_LIST:"+filelist_str)
+                elif(command=="GET_SERVER_NAME"):
+                    ws.send("RET_SERVER_NAME:"+ws.environ['SERVER_NAME'])
+                elif(command=="GET_TEMP"):
+                    if(platform_system ==  'Windows'):
+                        ws.send("RET_TEMP:dummy 25.000")
+                    else:
+                        temps = read_temp()
+                        ws.send("RET_TEMP:"+str(temps[0]))
+                elif(command=="SET_LED"):
+                    if(platform_system ==  'Windows'):
+                        if (arg.lower()=="true") or (arg=="1") :
+                            print "LED=ON\n"
+                        else:
+                            print "LED=OFF\n"
+                    else:
+                        if (arg.lower()=="true") or (arg=="1") :
+                            set_led(True)
+                            ws.send("RET_LED:True")
+                        else:
+                            set_led(False)
+                            ws.send("RET_LED:False")
+                elif(command=="GET_USB_IMAGE"):
+                    img=usb_camera_capture()
+                    fp = StringIO()
                     img.save(fp,'JPEG')
-                    ws.send("RET_IMAGE:"+fp.getvalue().encode("base64"))
-                except Exception as e:
-                    ws.send("ERROR :");
-                    ws.send("< "+message+"");
-                    ws.send("> "+e.strerror);
-            elif(command=="GET_IMAGE_LIST"):
-                filelist=os.listdir('./images/')
-                filelist.sort()
-                filelist_str="`".join(filelist)
-                ws.send("RET_IMAGE_LIST:"+filelist_str)
-            elif(command=="GET_SERVER_NAME"):
-                ws.send("RET_SERVER_NAME:"+ws.environ['SERVER_NAME'])
-            elif(command=="GET_TEMP"):
-                if(platform_system ==  'Windows'):
-                    ws.send("RET_TEMP:dummy 25.000")
+                    ws.send("RET_USB_IMAGE:"+fp.getvalue().encode("base64"))
                 else:
-                    temps = read_temp()
-                    ws.send("RET_TEMP:"+str(temps[0]))
-            elif(command=="SET_LED"):
-                if(platform_system ==  'Windows'):
-                    if (arg.lower()=="true") or (arg=="1") :
-                        print "LED=ON\n"
-                    else:
-                        print "LED=OFF\n"
-                else:
-                    if (arg.lower()=="true") or (arg=="1") :
-                        set_led(True)
-                        ws.send("RET_LED:True")
-                    else:
-                        set_led(False)
-                        ws.send("RET_LED:False")
-            elif(command=="GET_USB_IMAGE"):
-                img=usb_camera_capture()
-                fp = StringIO()
-                img.save(fp,'JPEG')
-                ws.send("RET_USB_IMAGE:"+fp.getvalue().encode("base64"))
-            elif(command=="SET_AUTHENTICATION"):
-                if arg==pass_word:
-                    ws.send("RET_AUTHENTICATION:mainpage34975.html")
-            else:
-                ws.send(command+": is not supported")
+                    ws.send(command+": is not supported")
+            
         else:
             ws.send("Format is COMMAND:ARG")
             ws.send("Echo:"+message)
@@ -104,7 +111,7 @@ def app(environ, start_response):
         return open("scripts/index.html").readlines()
     elif path == "/command":
         try:
-            handle_command(environ["wsgi.websocket"])
+            handle_command(environ)
         except:
             pass
     else:
