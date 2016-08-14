@@ -17,6 +17,9 @@
         .command_input {
             width: 300px;
         }
+        .led_slide_bar{
+            width: 200px;
+        }
     </style>
     <script>
         var port_number = 15328;
@@ -89,6 +92,8 @@
                     if (command == "RET_AUTHENTICATION") {
                         if (arg == "True") {
                             $("#is_authed").text("OK");
+                            //$("#is_authed").css('color', 'Blue');
+                            $(".label_auth").css('color', 'Blue');
                         }
                     }
                     if (command == "RET_IMAGE") {
@@ -161,14 +166,26 @@
                 send('SET_AUTHENTICATION:' + $('#password').val());
                 $('#password').val("");
             })
+            $('#led_pwm_percent1').change(function () {
+                send('SET_LEDPWM:1,' + $('#led_pwm_percent1').val());
+            })
+            $('#led_pwm_percent2').change(function () {
+                send('SET_LEDPWM:2,' + $('#led_pwm_percent2').val());
+            })
+            $('#led_pwm_percent3').change(function () {
+                send('SET_LEDPWM:3,' + $('#led_pwm_percent3').val());
+            })
         });
     </script>
 </head>
 <body>
     <h3>This is PythonWebServer/mainpage.html</h3>
-    Enter Password:<input type="text" id="password"><button id="button_pw">SET</button>&nbsp;AUTHENTICATION&nbsp;<span id="is_authed">NG</span><br />
+    Enter Password:<input type="text" id="password">&nbsp;<button id="button_pw">SET</button>&nbsp;<span class="label_auth" style="color: red">AUTHENTICATION</span>&nbsp;<span id="is_authed" class="label_auth" style="color: red;">NG</span><br />
     <button id="get_temp">GET_TEMP</button>&nbsp;<span id="label_temp"></span>
-    &nbsp;<button id="led_on">LED ON</button>&nbsp;<span id="label_led">LED OFF</span>&nbsp;<button id="led_off">LED OFF</button><br />
+    &nbsp;<button id="led_on">LED ON</button>&nbsp;<span id="label_led">LED OFF</span>&nbsp;<button id="led_off">LED OFF</button><br/>
+    R<input type="range" id="led_pwm_percent1" min="0" max="100" value="0" class="led_slide_bar" />
+    &nbsp;G<input type="range" id="led_pwm_percent2" min="0" max="100" value="0" class="led_slide_bar" />
+    &nbsp;B<input type="range" id="led_pwm_percent3" min="0" max="100" value="0" class="led_slide_bar" /><br />
     <button id="get_image_list">GET_IMAGE_LIST</button>&nbsp:
     GET_IMAGE:<select id="select_image"><option value="(none)">(none)</option></select>
     &nbsp;<button id="get_usb_image">GET USB IMAGE</button><br />

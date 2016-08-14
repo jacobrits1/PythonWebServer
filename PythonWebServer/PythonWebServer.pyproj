@@ -28,6 +28,7 @@
     <Compile Include="usb_camera_capture.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="led_pwm.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="scripts\jquery-1.11.3.min.js" />

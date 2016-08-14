@@ -1,4 +1,12 @@
-2016.8.6現在
+2016.8.9現在
 画像表示 OK
 温度計による温度の測定　OK
 LEDのON/OFF　OK
+LEDのPWM制御 検討中
+明るさの取得　検討中
+ RPIOはNG errorの解決方法がわからない
+ RPI.GPIOでいけるみたい
+ http://om.hatenablog.com/entry/2015/02/14/204009
+ wiringpi2 は、sudoがいる -> 中止
+RGBLEDを用いて、自由に色を出力
+　使用LEDは、カソードコモン　P11:R, P15:G, P16:Gを使用

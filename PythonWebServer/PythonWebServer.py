@@ -6,7 +6,6 @@ from PIL import Image
 import os
 import exceptions
 from exceptions import IOError, Exception, KeyboardInterrupt
-
 port_number=15328
 pass_word="lemoncookie"
 
@@ -26,7 +25,9 @@ if len(sys.argv)>1:
 from Good_w1_get_DS18B20_Temperature import TempratureSensor
 from led_cont import LED
 from usb_camera_capture import USBCamera
+from led_pwm import LED_PWM
 
+led_pwm = []
 def get_temp(): #dummy for windows debug
     return 25
 
@@ -40,9 +41,10 @@ def handle_command(env):
         index = message.find(":")
         if((index >=1)and(index<30)):
             command= message[0:index]
-            arg = message[index+1:]
+            arglist = message[index+1:]
+            arg = arglist.split(',')
             if(command=="SET_AUTHENTICATION"):
-                if arg==pass_word:
+                if arg[0]==pass_word:
                     isAuthed=True
                     ws.send("RET_AUTHENTICATION:True")
                 else:
@@ -52,7 +54,7 @@ def handle_command(env):
                     try:
                         fp = StringIO()
                         try:
-                            img = Image.open("./images/"+arg)
+                            img = Image.open("./images/"+arg[0])
                         except IOError as e:
                             ws.send("ERROR :");
                             ws.send("< "+message+"");
@@ -78,17 +80,20 @@ def handle_command(env):
                         ws.send("RET_TEMP:"+str(temps[0]))
                 elif(command=="SET_LED"):
                     if(platform_system ==  'Windows'):
-                        if (arg.lower()=="true") or (arg=="1") :
+                        if (arg[0].lower()=="true") or (arg[0]=="1") :
                             print "LED=ON\n"
                         else:
                             print "LED=OFF\n"
                     else:
-                        if (arg.lower()=="true") or (arg=="1") :
+                        if (arg[0].lower() == "true") or (arg[0] == "1") :
                             led.set(True)
                             ws.send("RET_LED:True")
                         else:
                             led.set(False)
                             ws.send("RET_LED:False")
+                elif(command=="SET_LEDPWM"):
+                    if len(arg) == 2:
+                       led_pwm[int(arg[0])-1].lite(int(arg[1]))
                 elif(command=="GET_USB_IMAGE"):
                     img=usbcamera.capture()
                     fp = StringIO()
@@ -129,9 +134,12 @@ def app(environ, start_response):
             return []
 
 if __name__ == "__main__":
-    led=LED()
     usbcamera=USBCamera()
     tempsens=TempratureSensor()
+    led=LED(12)
+    led_pwm.append(LED_PWM(11))
+    led_pwm.append(LED_PWM(15))
+    led_pwm.append(LED_PWM(16))
     try :
         server = pywsgi.WSGIServer(("0.0.0.0",port_number), app, handler_class=WebSocketHandler)
         server.serve_forever()
