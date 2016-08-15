@@ -2,6 +2,7 @@ from subprocess import Popen, PIPE
 #from subprocess import check_call
 from datetime import datetime
 from PIL import Image
+from exceptions import IOError, OSError
 
 class USBCamera:
     def __init__(self):
@@ -15,6 +16,9 @@ class USBCamera:
             #check_call(["/usr/bin/fswebcam","-S", "3",filename])
         except OSError as e:
             print str(e)
-        img = Image.open(filename)
+        try:
+            img = Image.open(filename)
+        except IOError as e:
+            img=None
         return img
 

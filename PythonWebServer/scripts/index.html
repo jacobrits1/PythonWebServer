@@ -175,6 +175,14 @@
             $('#led_pwm_percent3').change(function () {
                 send('SET_LEDPWM:3,' + $('#led_pwm_percent3').val());
             })
+            $('#button_lcd_disp').click(function () {
+                send_message = $('#lcd_disp_text').val();
+                if (send_message.length > 16*2) {
+                    send_message = send_message.substr(0, 16*2);
+                    $('#lcd_disp_text').val(send_message);
+                }
+                send('SET_LCD_MESSAGE:' + send_message);
+            })
         });
     </script>
 </head>
@@ -182,7 +190,7 @@
     <h3>This is PythonWebServer/mainpage.html</h3>
     Enter Password:<input type="text" id="password">&nbsp;<button id="button_pw">SET</button>&nbsp;<span class="label_auth" style="color: red">AUTHENTICATION</span>&nbsp;<span id="is_authed" class="label_auth" style="color: red;">NG</span><br />
     <button id="get_temp">GET_TEMP</button>&nbsp;<span id="label_temp"></span>
-    &nbsp;<button id="led_on">LED ON</button>&nbsp;<span id="label_led">LED OFF</span>&nbsp;<button id="led_off">LED OFF</button><br/>
+    &nbsp;<button id="led_on">LED ON</button>&nbsp;<span id="label_led">LED OFF</span>&nbsp;<button id="led_off">LED OFF</button>&nbsp;LCD Disp<input type="text" id="lcd_disp_text"/><button id="button_lcd_disp">SEND</button><br/>
     R<input type="range" id="led_pwm_percent1" min="0" max="100" value="0" class="led_slide_bar" />
     &nbsp;G<input type="range" id="led_pwm_percent2" min="0" max="100" value="0" class="led_slide_bar" />
     &nbsp;B<input type="range" id="led_pwm_percent3" min="0" max="100" value="0" class="led_slide_bar" /><br />
