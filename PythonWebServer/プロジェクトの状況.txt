@@ -14,3 +14,4 @@ RGBLEDを用いて、自由に色を出力 OK
 LCD16モジュール smbusを使用
  lcd_i2c_Temparature.pyの動作を確認
  Lcd16Classを作成
+ 動作確認済み
